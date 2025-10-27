@@ -5,11 +5,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { HexColorPicker } from 'react-colorful';
 
 export default function SettingsScreen() {
   const { state, resetAllStats, recoverDeletedData, updateSandboxSettings } = useGame();
   const [sandboxMode, setSandboxMode] = useState(false);
   const [sandboxValues, setSandboxValues] = useState(state.sandboxSettings);
+  const [showThemeColorPicker, setShowThemeColorPicker] = useState(false);
+  const [showProgressColorPicker, setShowProgressColorPicker] = useState(false);
   const themeColor = state.sandboxSettings.themeColor || '#FFFFFF';
 
   const handleResetStats = () => {
@@ -104,15 +107,30 @@ export default function SettingsScreen() {
             <div className="mb-4 pb-4 border-b border-[#2A2A2A]">
               <label className="block text-sm font-semibold text-white mb-3">Theme Color</label>
               <div className="flex items-center gap-4">
-                <input
-                  type="color"
-                  value={state.sandboxSettings.themeColor}
-                  onChange={(e) => updateSandboxSettings({ 
-                    ...state.sandboxSettings, 
-                    themeColor: e.target.value 
-                  })}
-                  className="w-16 h-16 rounded-lg cursor-pointer bg-transparent border-2 border-[#2A2A2A]"
-                />
+                <div className="relative">
+                  <button
+                    onClick={() => setShowThemeColorPicker(!showThemeColorPicker)}
+                    className="w-16 h-16 rounded-full cursor-pointer border-4 border-[#2A2A2A] transition-transform hover:scale-105"
+                    style={{ backgroundColor: state.sandboxSettings.themeColor }}
+                  />
+                  {showThemeColorPicker && (
+                    <div className="absolute top-20 left-0 z-50 p-4 bg-[#1A1A1A] rounded-2xl border-2 border-[#2A2A2A] shadow-2xl">
+                      <HexColorPicker 
+                        color={state.sandboxSettings.themeColor}
+                        onChange={(color) => updateSandboxSettings({ 
+                          ...state.sandboxSettings, 
+                          themeColor: color 
+                        })}
+                      />
+                      <button
+                        onClick={() => setShowThemeColorPicker(false)}
+                        className="mt-3 w-full py-2 bg-[#2A2A2A] text-white rounded-lg text-sm font-semibold hover:bg-[#3A3A3A]"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <div className="flex-1">
                   <p className="text-sm text-white font-medium mb-1">App Theme</p>
                   <p className="text-xs text-[#999]">Changes buttons, highlights, and accents</p>
@@ -123,15 +141,30 @@ export default function SettingsScreen() {
             <div>
               <label className="block text-sm font-semibold text-white mb-3">Progress Bar Color</label>
               <div className="flex items-center gap-4">
-                <input
-                  type="color"
-                  value={state.sandboxSettings.progressBarColor}
-                  onChange={(e) => updateSandboxSettings({ 
-                    ...state.sandboxSettings, 
-                    progressBarColor: e.target.value 
-                  })}
-                  className="w-16 h-16 rounded-lg cursor-pointer bg-transparent border-2 border-[#2A2A2A]"
-                />
+                <div className="relative">
+                  <button
+                    onClick={() => setShowProgressColorPicker(!showProgressColorPicker)}
+                    className="w-16 h-16 rounded-full cursor-pointer border-4 border-[#2A2A2A] transition-transform hover:scale-105"
+                    style={{ backgroundColor: state.sandboxSettings.progressBarColor }}
+                  />
+                  {showProgressColorPicker && (
+                    <div className="absolute top-20 left-0 z-50 p-4 bg-[#1A1A1A] rounded-2xl border-2 border-[#2A2A2A] shadow-2xl">
+                      <HexColorPicker 
+                        color={state.sandboxSettings.progressBarColor}
+                        onChange={(color) => updateSandboxSettings({ 
+                          ...state.sandboxSettings, 
+                          progressBarColor: color 
+                        })}
+                      />
+                      <button
+                        onClick={() => setShowProgressColorPicker(false)}
+                        className="mt-3 w-full py-2 bg-[#2A2A2A] text-white rounded-lg text-sm font-semibold hover:bg-[#3A3A3A]"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <div className="flex-1">
                   <p className="text-sm text-white font-medium mb-1">Charts & Bars</p>
                   <p className="text-xs text-[#999]">Used in progress graphs and bars</p>
