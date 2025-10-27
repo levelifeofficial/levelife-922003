@@ -184,7 +184,9 @@ const INITIAL_STATE: GameState = {
   rewards: [],
   proTips: [],
   progressHistory: [],
-  sandboxSettings: DEFAULT_SANDBOX_SETTINGS,
+  sandboxSettings: {
+    ...DEFAULT_SANDBOX_SETTINGS,
+  },
   showQuestImages: true,
 };
 
@@ -240,6 +242,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
               ...DEFAULT_SANDBOX_SETTINGS,
               ...parsed.sandboxSettings,
               customRanks: parsed.sandboxSettings?.customRanks || DEFAULT_SANDBOX_SETTINGS.customRanks,
+              showRankPhotos: parsed.sandboxSettings?.showRankPhotos ?? DEFAULT_SANDBOX_SETTINGS.showRankPhotos,
               difficultyMultipliers: {
                 ...DEFAULT_SANDBOX_SETTINGS.difficultyMultipliers,
                 ...parsed.sandboxSettings?.difficultyMultipliers,
