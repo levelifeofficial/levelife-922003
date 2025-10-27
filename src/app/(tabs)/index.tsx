@@ -203,8 +203,10 @@ export default function StatusScreen() {
                 </p>
               </div>
               <div className="flex-1 min-w-[45%] bg-[#0F0F0F] p-4 rounded-xl text-center">
-                <p className="text-xs text-[#999] mb-1 font-semibold">Quests</p>
-                <p className="text-2xl font-bold text-white">{state.player.questsCompleted}</p>
+                <p className="text-xs text-[#999] mb-1 font-semibold">Daily Streak</p>
+                <p className="text-2xl font-bold text-white">
+                  🔥 {state.player.dailyStreak}
+                </p>
               </div>
               <div className="flex-1 min-w-[45%] bg-[#0F0F0F] p-4 rounded-xl text-center">
                 <p className="text-xs text-[#999] mb-1 font-semibold">Total XP</p>
@@ -244,15 +246,6 @@ export default function StatusScreen() {
             <span className="text-sm text-white font-semibold">
               {new Date(state.player.createdAt).toLocaleDateString()}
             </span>
-          </div>
-          <div className="border-b border-[#2A2A2A] py-3 flex justify-between items-center">
-            <span className="text-sm text-[#999]">Daily Streak</span>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🔥</span>
-              <span className="text-sm text-white font-semibold">
-                {state.player.dailyStreak} {state.player.dailyStreak === 1 ? 'day' : 'days'}
-              </span>
-            </div>
           </div>
           <div className="border-b border-[#2A2A2A] py-3 flex justify-between">
             <span className="text-sm text-[#999]">Active Quests</span>
