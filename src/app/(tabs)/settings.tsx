@@ -16,6 +16,13 @@ export default function SettingsScreen() {
   const [showProgressColorPicker, setShowProgressColorPicker] = useState(false);
   const themeColor = state.sandboxSettings.themeColor || '#FFFFFF';
 
+  // Update sandboxValues when dialog opens
+  React.useEffect(() => {
+    if (sandboxMode) {
+      setSandboxValues(state.sandboxSettings);
+    }
+  }, [sandboxMode, state.sandboxSettings]);
+
   const handleResetStats = () => {
     if (confirm('Reset All Stats\n\nThis will delete all your progress, quests, and rewards. You have 30 days to recover your data. Are you sure?')) {
       resetAllStats();
@@ -255,12 +262,12 @@ export default function SettingsScreen() {
       </div>
 
       <Dialog open={sandboxMode} onOpenChange={setSandboxMode}>
-        <DialogContent className="bg-[#1A1A1A] border-[#2A2A2A] text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-[#1A1A1A] border-[#2A2A2A] text-white max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">Sandbox Mode</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-8">
+          <div className="space-y-8 overflow-y-auto flex-1 pr-2">
             <div>
               <h3 className="text-lg font-bold text-white mb-2">Base Values</h3>
               
@@ -406,12 +413,16 @@ export default function SettingsScreen() {
               </div>
             </div>
 
+          </div>
+
+          {/* Floating Save Button */}
+          <div className="sticky bottom-0 bg-[#1A1A1A] pt-4 pb-2 border-t border-[#2A2A2A] mt-4">
             <Button
               onClick={handleSaveSandboxSettings}
               className="w-full text-black font-bold py-4 rounded-xl hover:opacity-90"
               style={{ backgroundColor: themeColor }}
             >
-              Save Settings
+              Save Changes
             </Button>
           </div>
         </DialogContent>
