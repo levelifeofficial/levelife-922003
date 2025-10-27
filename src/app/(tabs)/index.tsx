@@ -178,7 +178,7 @@ export default function StatusScreen() {
             </div>
 
             <div className="flex flex-col items-center mb-6 py-3 bg-[#0F0F0F] rounded-xl gap-3">
-              {rank.image && (
+              {rank.image && state.sandboxSettings.showRankPhotos && (
                 <img 
                   src={rank.image} 
                   alt="Rank badge"
@@ -244,6 +244,15 @@ export default function StatusScreen() {
             <span className="text-sm text-white font-semibold">
               {new Date(state.player.createdAt).toLocaleDateString()}
             </span>
+          </div>
+          <div className="border-b border-[#2A2A2A] py-3 flex justify-between items-center">
+            <span className="text-sm text-[#999]">Daily Streak</span>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🔥</span>
+              <span className="text-sm text-white font-semibold">
+                {state.player.dailyStreak} {state.player.dailyStreak === 1 ? 'day' : 'days'}
+              </span>
+            </div>
           </div>
           <div className="border-b border-[#2A2A2A] py-3 flex justify-between">
             <span className="text-sm text-[#999]">Active Quests</span>

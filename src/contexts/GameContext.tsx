@@ -75,6 +75,7 @@ export interface SandboxSettings {
   customRanks: RankConfig[];
   themeColor: string;
   progressBarColor: string;
+  showRankPhotos: boolean;
   difficultyMultipliers: {
     Easy: { xp: number; gold: number };
     Normal: { xp: number; gold: number };
@@ -94,6 +95,8 @@ export interface PlayerStats {
   totalXpEarned: number;
   questsCompleted: number;
   createdAt: string;
+  dailyStreak: number;
+  lastLoginDate?: string;
 }
 
 interface GameState {
@@ -153,6 +156,7 @@ const DEFAULT_SANDBOX_SETTINGS: SandboxSettings = {
   customRanks: RANKS,
   themeColor: '#FFFFFF',
   progressBarColor: '#FFFFFF',
+  showRankPhotos: false,
   difficultyMultipliers: {
     Easy: { xp: 1, gold: 1 },
     Normal: { xp: 2, gold: 2 },
@@ -171,6 +175,8 @@ const INITIAL_STATE: GameState = {
     totalXpEarned: 0,
     questsCompleted: 0,
     createdAt: new Date().toISOString(),
+    dailyStreak: 0,
+    lastLoginDate: undefined,
   },
   quests: [],
   classes: [],
@@ -256,6 +262,42 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     loadState();
   }, [loadState]);
+
+  // Check and update daily streak
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const today = new Date().toDateString();
+    const lastLogin = state.player.lastLoginDate;
+
+    if (!lastLogin || lastLogin !== today) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayString = yesterday.toDateString();
+
+      let newStreak = state.player.dailyStreak;
+
+      if (lastLogin === yesterdayString) {
+        // Logged in yesterday, increment streak
+        newStreak += 1;
+      } else if (!lastLogin) {
+        // First time login
+        newStreak = 1;
+      } else {
+        // Missed a day, reset streak
+        newStreak = 1;
+      }
+
+      setState(prev => ({
+        ...prev,
+        player: {
+          ...prev.player,
+          dailyStreak: newStreak,
+          lastLoginDate: today,
+        },
+      }));
+    }
+  }, [isLoaded, state.player.lastLoginDate, state.player.dailyStreak]);
 
   const saveState = useCallback(() => {
     try {

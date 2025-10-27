@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { HexColorPicker } from 'react-colorful';
 
 export default function SettingsScreen() {
@@ -347,6 +348,22 @@ export default function SettingsScreen() {
               <p className="text-sm text-[#999] mb-4 leading-5">
                 Edit rank names and add custom images for each rank
               </p>
+
+              <div className="bg-[#0F0F0F] rounded-xl p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-semibold text-white">Show Rank Photos</Label>
+                    <p className="text-xs text-[#999] mt-1">Display uploaded rank icons in status window</p>
+                  </div>
+                  <Switch
+                    checked={sandboxValues.showRankPhotos}
+                    onCheckedChange={(checked) => setSandboxValues(prev => ({
+                      ...prev,
+                      showRankPhotos: checked,
+                    }))}
+                  />
+                </div>
+              </div>
 
               <div className="space-y-4">
                 {sandboxValues.customRanks.map((rank, index) => (
