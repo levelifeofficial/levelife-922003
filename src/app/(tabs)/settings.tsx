@@ -416,7 +416,7 @@ export default function SettingsScreen() {
           </div>
 
           {/* Floating Save Button */}
-          <div className="sticky bottom-0 bg-[#1A1A1A] pt-4 pb-2 border-t border-[#2A2A2A] mt-4">
+          <div className="bg-[#1A1A1A] pt-4 pb-2 border-t border-[#2A2A2A] mt-4">
             <Button
               onClick={handleSaveSandboxSettings}
               className="w-full text-black font-bold py-4 rounded-xl hover:opacity-90"
