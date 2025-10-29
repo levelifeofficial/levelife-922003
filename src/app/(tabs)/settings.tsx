@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { HexColorPicker } from 'react-colorful';
-import ReactCrop, { type Crop } from 'react-image-crop';
+import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 export default function SettingsScreen() {
@@ -21,9 +21,23 @@ export default function SettingsScreen() {
   // Crop states
   const [showCropModal, setShowCropModal] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string>('');
-  const [crop, setCrop] = useState<Crop>({ unit: '%', width: 90, height: 90, x: 5, y: 5 });
+  const [crop, setCrop] = useState<Crop | undefined>(undefined);
   const [currentRankIndex, setCurrentRankIndex] = useState<number>(0);
   const imgRef = useRef<HTMLImageElement>(null);
+
+  // Helper to center and enforce 1:1 crop regardless of image aspect
+  function centerAspectSquare(mediaWidth: number, mediaHeight: number) {
+    return centerCrop(
+      makeAspectCrop(
+        { unit: '%', width: 90 },
+        1,
+        mediaWidth,
+        mediaHeight
+      ),
+      mediaWidth,
+      mediaHeight
+    );
+  }
 
   // Update sandboxValues when dialog opens
   React.useEffect(() => {
@@ -100,8 +114,8 @@ export default function SettingsScreen() {
         reader.onload = (event) => {
           setImageToCrop(event.target?.result as string);
           setCurrentRankIndex(index);
-          // Reset crop to default 1:1 square
-          setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
+          // Let crop be computed on image load to keep perfect 1:1
+          setCrop(undefined);
           setShowCropModal(true);
         };
         reader.readAsDataURL(file);
@@ -112,45 +126,41 @@ export default function SettingsScreen() {
 
   const getCroppedImg = (image: HTMLImageElement, crop: Crop): Promise<string> => {
     const canvas = document.createElement('canvas');
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-    
-    const size = Math.min(
-      crop.width ? (crop.width * scaleX) / 100 : 0,
-      crop.height ? (crop.height * scaleY) / 100 : 0
-    );
-    
-    canvas.width = size;
-    canvas.height = size;
+
+    // Translate crop to pixel units
+    const isPercent = crop.unit === '%';
+    const cropX = isPercent ? ((crop.x || 0) / 100) * image.naturalWidth : (crop.x || 0);
+    const cropY = isPercent ? ((crop.y || 0) / 100) * image.naturalHeight : (crop.y || 0);
+    const cropWidth = isPercent ? ((crop.width || 0) / 100) * image.naturalWidth : (crop.width || 0);
+    const cropHeight = isPercent ? ((crop.height || 0) / 100) * image.naturalHeight : (crop.height || 0);
+
+    // Canvas size matches crop exactly (should be square because aspect=1)
+    canvas.width = Math.round(cropWidth);
+    canvas.height = Math.round(cropHeight);
+
     const ctx = canvas.getContext('2d');
+    if (!ctx) return Promise.reject(new Error('No 2d context'));
 
-    if (!ctx) {
-      return Promise.reject(new Error('No 2d context'));
-    }
-
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(
       image,
-      crop.x ? (crop.x * scaleX) / 100 : 0,
-      crop.y ? (crop.y * scaleY) / 100 : 0,
-      crop.width ? (crop.width * scaleX) / 100 : 0,
-      crop.height ? (crop.height * scaleY) / 100 : 0,
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
       0,
       0,
-      size,
-      size
+      canvas.width,
+      canvas.height
     );
 
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
-        if (!blob) {
-          return;
-        }
+        if (!blob) return;
         const reader = new FileReader();
         reader.readAsDataURL(blob);
-        reader.onloadend = () => {
-          resolve(reader.result as string);
-        };
-      }, 'image/jpeg');
+        reader.onloadend = () => resolve(reader.result as string);
+      }, 'image/png', 1);
     });
   };
 
@@ -519,6 +529,7 @@ export default function SettingsScreen() {
                     src={imageToCrop}
                     alt="Crop preview"
                     style={{ maxHeight: '60vh', maxWidth: '100%' }}
+                    onLoad={(e) => setCrop(centerAspectSquare(e.currentTarget.naturalWidth, e.currentTarget.naturalHeight))}
                   />
                 </ReactCrop>
               )}
