@@ -1,6 +1,7 @@
 import { useGame } from '@/contexts/GameContext';
 import { TrendingUp } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
+import { formatGold } from '@/lib/utils';
 import { 
   startOfWeek, 
   endOfWeek, 
@@ -179,7 +180,7 @@ export default function ProgressScreen() {
                 <p className="text-xs text-[#999] font-semibold">Levels</p>
               </div>
               <div className="flex-1 min-w-[45%] bg-[#0F0F0F] p-4 rounded-xl text-center">
-                <p className="text-[28px] font-bold mb-1" style={{ color: themeColor }}>+{stats.goldGained}</p>
+                <p className="text-[28px] font-bold mb-1" style={{ color: themeColor }}>+{formatGold(stats.goldGained)}</p>
                 <p className="text-xs text-[#999] font-semibold">Gold</p>
               </div>
               <div className="flex-1 min-w-[45%] bg-[#0F0F0F] p-4 rounded-xl text-center">
@@ -253,7 +254,7 @@ export default function ProgressScreen() {
                       </p>
                       <div className="flex gap-3 flex-wrap">
                         <span className="text-xs text-[#999]">Level {entry.level}</span>
-                        <span className="text-xs text-[#999]">{entry.gold} 🟡</span>
+                        <span className="text-xs text-[#999]">{formatGold(entry.gold)} 🟡</span>
                         <span className="text-xs text-[#999]">{entry.questsCompleted} quests</span>
                       </div>
                     </div>

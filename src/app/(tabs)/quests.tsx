@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
+import { capGold, formatGold } from '@/lib/utils';
 
 const DIFFICULTY_COLORS: Record<Difficulty, string> = {
   Easy: '#34C759',
@@ -36,7 +37,7 @@ export default function QuestsScreen() {
   const baseXp = state.sandboxSettings.expPerQuest;
   const baseGold = state.sandboxSettings.goldPerQuest;
   const calculatedXp = Math.round(baseXp * difficultyMultiplier.xp);
-  const calculatedGold = Math.round(baseGold * difficultyMultiplier.gold);
+  const calculatedGold = capGold(Math.round(baseGold * difficultyMultiplier.gold));
 
   const pickImage = async () => {
     const input = document.createElement('input');
@@ -211,7 +212,7 @@ export default function QuestsScreen() {
                   </div>
                   <div className="flex gap-4">
                     <span className="text-sm font-medium text-[#007AFF]">{quest.xpReward} XP</span>
-                    <span className="text-sm font-medium text-[#FFD60A]">{quest.goldReward} 🟡</span>
+                    <span className="text-sm font-medium text-[#FFD60A]">{formatGold(quest.goldReward)} 🟡</span>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -269,7 +270,7 @@ export default function QuestsScreen() {
                   </span>
                   <div className="flex gap-4">
                     <span className="text-sm font-medium text-[#8E8E93]">{quest.xpReward} XP</span>
-                    <span className="text-sm font-medium text-[#8E8E93]">{quest.goldReward} 🟡</span>
+                    <span className="text-sm font-medium text-[#8E8E93]">{formatGold(quest.goldReward)} 🟡</span>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -394,7 +395,7 @@ export default function QuestsScreen() {
             <div className="flex justify-between bg-[#0F0F0F] p-4 rounded-xl">
               <span className="text-base font-semibold text-[#999]">Rewards:</span>
               <span className="text-base font-bold" style={{ color: themeColor }}>
-                {calculatedXp} XP + {calculatedGold} 🟡
+                {calculatedXp} XP + {formatGold(calculatedGold)} 🟡
               </span>
             </div>
 

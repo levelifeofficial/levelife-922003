@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from 'react';
+import { capGold } from '@/lib/utils';
 
 export type Difficulty = 'Easy' | 'Normal' | 'Hard' | 'Extreme' | 'Impossible';
 
@@ -361,7 +362,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       if (!quest || quest.completed) return prev;
 
       const newXp = prev.player.xp + quest.xpReward;
-      const newGold = prev.player.gold + quest.goldReward;
+      const newGold = capGold(prev.player.gold + quest.goldReward);
       const xpToNextLevel = prev.sandboxSettings.expPerLevel;
       
       let newLevel = prev.player.level;

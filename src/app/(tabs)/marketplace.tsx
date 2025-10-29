@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
+import { formatGold } from '@/lib/utils';
 
 export default function MarketplaceScreen() {
   const { state, addReward, updateReward, purchaseReward, unpurchaseReward, deleteReward } = useGame();
@@ -100,11 +101,11 @@ export default function MarketplaceScreen() {
 
   const handlePurchase = (rewardId: string, cost: number) => {
     if (state.player.gold < cost) {
-      alert(`Insufficient Gold: You need ${cost} gold to purchase this reward. You have ${state.player.gold} gold.`);
+      alert(`Insufficient Gold: You need ${formatGold(cost)} gold to purchase this reward. You have ${formatGold(state.player.gold)} gold.`);
       return;
     }
 
-    if (confirm(`Purchase Reward: Spend ${cost} gold on this reward?`)) {
+    if (confirm(`Purchase Reward: Spend ${formatGold(cost)} gold on this reward?`)) {
       purchaseReward(rewardId);
     }
   };
@@ -116,7 +117,7 @@ export default function MarketplaceScreen() {
   };
 
   const handleReturnReward = (rewardId: string, cost: number) => {
-    if (confirm(`Return this reward and receive ${cost} gold back?`)) {
+    if (confirm(`Return this reward and receive ${formatGold(cost)} gold back?`)) {
       unpurchaseReward(rewardId);
     }
   };
@@ -159,7 +160,7 @@ export default function MarketplaceScreen() {
                     {reward.description && (
                       <p className="text-sm text-[#999] mb-2 leading-5">{reward.description}</p>
                     )}
-                    <p className="text-lg font-bold text-white">{reward.goldCost} 🟡</p>
+                    <p className="text-lg font-bold text-white">{formatGold(reward.goldCost)} 🟡</p>
                   </div>
                   <div className="flex gap-3 p-4">
                     <button
@@ -218,7 +219,7 @@ export default function MarketplaceScreen() {
                       className="flex-1 flex items-center justify-center gap-2 bg-[#FF9800] py-3 rounded-xl"
                     >
                       <RotateCcw size={18} color="#FFF" />
-                      <span className="text-white text-base font-bold">Return ({reward.goldCost} 🟡)</span>
+                      <span className="text-white text-base font-bold">Return ({formatGold(reward.goldCost)} 🟡)</span>
                     </button>
                     <button
                       onClick={() => handleDeleteReward(reward.id)}
