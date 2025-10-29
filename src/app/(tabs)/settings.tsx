@@ -100,6 +100,8 @@ export default function SettingsScreen() {
         reader.onload = (event) => {
           setImageToCrop(event.target?.result as string);
           setCurrentRankIndex(index);
+          // Reset crop to default 1:1 square
+          setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
           setShowCropModal(true);
         };
         reader.readAsDataURL(file);
@@ -505,8 +507,12 @@ export default function SettingsScreen() {
                 <ReactCrop
                   crop={crop}
                   onChange={c => setCrop(c)}
+                  onComplete={c => setCrop(c)}
                   aspect={1}
-                  circularCrop={false}
+                  locked={false}
+                  keepSelection={true}
+                  minWidth={50}
+                  minHeight={50}
                 >
                   <img
                     ref={imgRef}
