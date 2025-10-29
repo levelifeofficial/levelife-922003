@@ -1,12 +1,14 @@
 import { useGame, type Difficulty } from '@/contexts/GameContext';
 import { ChevronRight, AlertCircle, Image as ImageIcon } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { HexColorPicker } from 'react-colorful';
+import ReactCrop, { type Crop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 export default function SettingsScreen() {
   const { state, resetAllStats, recoverDeletedData, updateSandboxSettings } = useGame();
@@ -15,6 +17,13 @@ export default function SettingsScreen() {
   const [showThemeColorPicker, setShowThemeColorPicker] = useState(false);
   const [showProgressColorPicker, setShowProgressColorPicker] = useState(false);
   const themeColor = state.sandboxSettings.themeColor || '#FFFFFF';
+  
+  // Crop states
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string>('');
+  const [crop, setCrop] = useState<Crop>({ unit: '%', width: 90, height: 90, x: 5, y: 5 });
+  const [currentRankIndex, setCurrentRankIndex] = useState<number>(0);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   // Update sandboxValues when dialog opens
   React.useEffect(() => {
@@ -89,17 +98,72 @@ export default function SettingsScreen() {
       if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
-          setSandboxValues(prev => ({
-            ...prev,
-            customRanks: prev.customRanks.map((rank, i) =>
-              i === index ? { ...rank, image: event.target?.result as string } : rank
-            ),
-          }));
+          setImageToCrop(event.target?.result as string);
+          setCurrentRankIndex(index);
+          setShowCropModal(true);
         };
         reader.readAsDataURL(file);
       }
     };
     input.click();
+  };
+
+  const getCroppedImg = (image: HTMLImageElement, crop: Crop): Promise<string> => {
+    const canvas = document.createElement('canvas');
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    
+    const size = Math.min(
+      crop.width ? (crop.width * scaleX) / 100 : 0,
+      crop.height ? (crop.height * scaleY) / 100 : 0
+    );
+    
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      return Promise.reject(new Error('No 2d context'));
+    }
+
+    ctx.drawImage(
+      image,
+      crop.x ? (crop.x * scaleX) / 100 : 0,
+      crop.y ? (crop.y * scaleY) / 100 : 0,
+      crop.width ? (crop.width * scaleX) / 100 : 0,
+      crop.height ? (crop.height * scaleY) / 100 : 0,
+      0,
+      0,
+      size,
+      size
+    );
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          return;
+        }
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+          resolve(reader.result as string);
+        };
+      }, 'image/jpeg');
+    });
+  };
+
+  const handleCropComplete = async () => {
+    if (imgRef.current && crop.width && crop.height) {
+      const croppedImage = await getCroppedImg(imgRef.current, crop);
+      setSandboxValues(prev => ({
+        ...prev,
+        customRanks: prev.customRanks.map((rank, i) =>
+          i === currentRankIndex ? { ...rank, image: croppedImage } : rank
+        ),
+      }));
+      setShowCropModal(false);
+      setImageToCrop('');
+    }
   };
 
   return (
@@ -424,6 +488,51 @@ export default function SettingsScreen() {
             >
               Save Changes
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Crop Modal */}
+      <Dialog open={showCropModal} onOpenChange={setShowCropModal}>
+        <DialogContent className="bg-[#1A1A1A] border-[#2A2A2A] text-white max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Crop Image (1:1 Ratio)</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex justify-center bg-[#0F0F0F] rounded-xl p-4">
+              {imageToCrop && (
+                <ReactCrop
+                  crop={crop}
+                  onChange={c => setCrop(c)}
+                  aspect={1}
+                  circularCrop={false}
+                >
+                  <img
+                    ref={imgRef}
+                    src={imageToCrop}
+                    alt="Crop preview"
+                    style={{ maxHeight: '60vh', maxWidth: '100%' }}
+                  />
+                </ReactCrop>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setShowCropModal(false)}
+                className="flex-1 bg-[#2A2A2A] text-white hover:bg-[#3A3A3A]"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCropComplete}
+                className="flex-1 text-black font-bold"
+                style={{ backgroundColor: themeColor }}
+              >
+                Save Cropped Image
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
