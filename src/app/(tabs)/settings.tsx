@@ -125,18 +125,52 @@ export default function SettingsScreen() {
   };
 
   const getCroppedImg = (image: HTMLImageElement, crop: Crop): Promise<string> => {
+    console.log('getCroppedImg called with crop:', crop);
+    console.log('Image dimensions - natural:', image.naturalWidth, 'x', image.naturalHeight);
+    console.log('Image dimensions - displayed:', image.width, 'x', image.height);
+    
     const canvas = document.createElement('canvas');
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
 
-    // Translate crop to pixel units
-    const isPercent = crop.unit === '%';
-    const cropX = isPercent ? ((crop.x || 0) / 100) * image.naturalWidth : (crop.x || 0);
-    const cropY = isPercent ? ((crop.y || 0) / 100) * image.naturalHeight : (crop.y || 0);
-    const cropWidth = isPercent ? ((crop.width || 0) / 100) * image.naturalWidth : (crop.width || 0);
-    const cropHeight = isPercent ? ((crop.height || 0) / 100) * image.naturalHeight : (crop.height || 0);
+    console.log('Scale factors - X:', scaleX, 'Y:', scaleY);
 
-    // Canvas size matches crop exactly (should be square because aspect=1)
-    canvas.width = Math.round(cropWidth);
-    canvas.height = Math.round(cropHeight);
+    // Convert crop to pixel coordinates on the displayed image, then scale to natural size
+    let pixelCrop;
+    if (crop.unit === '%') {
+      pixelCrop = {
+        x: (crop.x / 100) * image.width,
+        y: (crop.y / 100) * image.height,
+        width: (crop.width / 100) * image.width,
+        height: (crop.height / 100) * image.height,
+      };
+    } else {
+      pixelCrop = {
+        x: crop.x,
+        y: crop.y,
+        width: crop.width,
+        height: crop.height,
+      };
+    }
+
+    console.log('Pixel crop on displayed image:', pixelCrop);
+
+    // Scale to natural image size
+    const naturalCrop = {
+      x: pixelCrop.x * scaleX,
+      y: pixelCrop.y * scaleY,
+      width: pixelCrop.width * scaleX,
+      height: pixelCrop.height * scaleY,
+    };
+
+    console.log('Natural crop coordinates:', naturalCrop);
+
+    // Canvas should be square (1:1 aspect ratio)
+    const size = Math.round(Math.min(naturalCrop.width, naturalCrop.height));
+    canvas.width = size;
+    canvas.height = size;
+
+    console.log('Canvas size:', size, 'x', size);
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return Promise.reject(new Error('No 2d context'));
@@ -144,14 +178,14 @@ export default function SettingsScreen() {
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(
       image,
-      cropX,
-      cropY,
-      cropWidth,
-      cropHeight,
+      Math.round(naturalCrop.x),
+      Math.round(naturalCrop.y),
+      Math.round(naturalCrop.width),
+      Math.round(naturalCrop.height),
       0,
       0,
-      canvas.width,
-      canvas.height
+      size,
+      size
     );
 
     return new Promise((resolve) => {
@@ -159,14 +193,24 @@ export default function SettingsScreen() {
         if (!blob) return;
         const reader = new FileReader();
         reader.readAsDataURL(blob);
-        reader.onloadend = () => resolve(reader.result as string);
+        reader.onloadend = () => {
+          console.log('Cropped image created successfully');
+          resolve(reader.result as string);
+        };
       }, 'image/png', 1);
     });
   };
 
   const handleCropComplete = async () => {
-    if (imgRef.current && crop.width && crop.height) {
+    console.log('handleCropComplete called');
+    console.log('Current crop state:', crop);
+    console.log('Current rank index:', currentRankIndex);
+    
+    if (imgRef.current && crop && crop.width && crop.height) {
+      console.log('Starting crop process...');
       const croppedImage = await getCroppedImg(imgRef.current, crop);
+      console.log('Cropped image length:', croppedImage.length);
+      
       setSandboxValues(prev => ({
         ...prev,
         customRanks: prev.customRanks.map((rank, i) =>
@@ -175,6 +219,14 @@ export default function SettingsScreen() {
       }));
       setShowCropModal(false);
       setImageToCrop('');
+      console.log('Crop complete, modal closed');
+    } else {
+      console.error('Cannot crop - missing data:', {
+        hasImgRef: !!imgRef.current,
+        hasCrop: !!crop,
+        cropWidth: crop?.width,
+        cropHeight: crop?.height
+      });
     }
   };
 
